@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import type { MouseEvent } from "react";
-import { isLoggedIn } from "#/auth/fakeAuth";
+// import { isLoggedIn } from "#/auth/fakeAuth";
+import { authClient } from "#/lib/auth-client";
 
 const primaryNavLinkClass =
   "border-b-2 border-transparent px-[0.05rem] py-[0.28rem] font-[650] text-[var(--ink-soft)] no-underline transition-colors duration-150 ease-in-out hover:text-[var(--ink-strong)]";
@@ -10,10 +11,20 @@ const disabledNavLinkClass =
   "cursor-not-allowed select-none opacity-45 hover:text-[var(--ink-soft)]";
 
 export default function Header() {
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+
+  const isLoggedIn = !!session?.user;
+  const fullName = session?.user?.name ?? "";
   const handleDisabledAddJokeClick = (event: MouseEvent<HTMLAnchorElement>) => {
     if (!isLoggedIn) {
       event.preventDefault();
     }
+  };
+
+  const handleSignOut = async () => {
+      await authClient.signOut();
+      await router.navigate({ to: "/" });
   };
 
   const addJokeLinkClass = isLoggedIn
@@ -65,7 +76,7 @@ export default function Header() {
         </div>
 
         <div className="order-2 ml-auto flex items-center gap-2 text-sm sm:order-3">
-          <Link
+          {/* <Link
             to="/signin"
             className="rounded-full border border-[#d9cbb3] bg-[#fffdf8] px-3 py-1.5 font-semibold text-[#6e5c47] no-underline transition-colors duration-150 hover:border-[#c8b393] hover:text-[#4b3b28]"
             activeProps={{
@@ -84,7 +95,35 @@ export default function Header() {
             }}
           >
             Signup
-          </Link>
+          </Link> */}
+          {isLoggedIn ? (
+            <>
+              {/* Show username and sign out if logged in */}
+              <span className="text-[var(--ink-strong)]">{fullName}</span>
+              <button
+                onClick={handleSignOut}
+                className="rounded-full border border-[#d9cbb3] bg-[#fffdf8] px-3 py-1.5 font-semibold text-[#6e5c47] no-underline transition-colors duration-150 hover:border-[#c8b393] hover:text-[#4b3b28]"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Show signin and signup links if logged out */}
+              <Link
+                to="/signin"
+                className="rounded-full border border-[#d9cbb3] bg-[#fffdf8] px-3 py-1.5 font-semibold text-[#6e5c47] no-underline transition-colors duration-150 hover:border-[#c8b393] hover:text-[#4b3b28]"
+              >
+                Signin
+              </Link>
+              <Link
+                to="/signup"
+                className="rounded-full border border-[#d78a41] bg-[linear-gradient(180deg,#ee9a49_0%,#d77420_100%)] px-3 py-1.5 font-semibold text-[#fff9f2] no-underline shadow-[0_6px_12px_rgba(180,83,9,0.2)] transition-[transform,box-shadow] duration-150 ease-in-out hover:-translate-y-px hover:shadow-[0_8px_14px_rgba(180,83,9,0.28)]"
+              >
+                Signup
+              </Link>
+            </>
+          )}
         </div>
       </nav>
     </header>
