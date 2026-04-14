@@ -1,4 +1,5 @@
-import type { CommentRow, JokeRow } from "#/server/db/schema";
+// import type { CommentRow, JokeRow } from "#/server/db/schema";
+import type { CommentRow, JokeRow } from "#/dal/db/schema";
 
 export type Joke = Pick<JokeRow, "id" | "question" | "answer" | "score"> & {
   comments: CommentRow["body"][];
@@ -7,6 +8,7 @@ export type Joke = Pick<JokeRow, "id" | "question" | "answer" | "score"> & {
 export interface CreateJokeInput {
   question: Joke["question"];
   answer: Joke["answer"];
+  ownerId: string;
 }
 
 export interface VoteJokeInput {

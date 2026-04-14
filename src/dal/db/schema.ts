@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { user } from "./auth-schema.ts";
 
 export const jokesTable = pgTable("jokes", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
@@ -7,6 +8,7 @@ export const jokesTable = pgTable("jokes", {
   answer: text("answer").notNull(),
   score: integer("score").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  joke_creator: text("joke_creator").notNull().references(() => user.id, { onDelete: "cascade" }),
 });
 
 export const commentsTable = pgTable("comments", {
@@ -18,8 +20,12 @@ export const commentsTable = pgTable("comments", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const jokesRelations = relations(jokesTable, ({ many }) => ({
+export const jokesRelations = relations(jokesTable, ({ many, one }) => ({
   comments: many(commentsTable),
+  user: one(user, {
+    fields: [jokesTable.joke_creator],
+    references: [user.id],
+  }),
 }));
 
 export const commentsRelations = relations(commentsTable, ({ one }) => ({

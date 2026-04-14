@@ -36,14 +36,15 @@ function NewJokePage() {
     const formData = new FormData(event.currentTarget);
     const question = String(formData.get("question") ?? "").trim();
     const answer = String(formData.get("answer") ?? "").trim();
+    const ownerId = session?.user.id;
 
-    if (!question || !answer) return;
+    if (!question || !answer || !ownerId) return;
 
     reset();
 
     try {
       await mutateAsync({
-        data: { question, answer },
+        data: { question, answer, ownerId },
       });
 
       await navigate({ to: "/" });

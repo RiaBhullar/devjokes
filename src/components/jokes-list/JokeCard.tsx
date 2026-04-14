@@ -1,6 +1,7 @@
 import { CommentsDrawer } from "#/components/CommentsDrawer";
 import { isLoggedIn } from "#/auth/fakeAuth";
 import type { Joke } from "#/types";
+import { authClient } from "#/lib/auth-client";
 import {
   ArrowBigDown,
   ArrowBigUp,

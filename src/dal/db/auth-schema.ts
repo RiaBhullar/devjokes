@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
 import { randomUUID } from 'crypto';
+import { jokesTable } from "./schema";
 
 export const user = pgTable("users", {
   id: text("id").primaryKey(),
@@ -77,6 +78,7 @@ export const verification = pgTable(
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  joke: many(jokesTable)
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

@@ -40,12 +40,14 @@ export class JokeService {
         question: input.question.trim(),
         answer: input.answer.trim(),
         score: 0,
+        joke_creator: input.ownerId
       })
       .returning({
         id: jokesTable.id,
         question: jokesTable.question,
         answer: jokesTable.answer,
         score: jokesTable.score,
+        joke_creator: jokesTable.joke_creator
       });
 
     if (!insertedJoke) {
