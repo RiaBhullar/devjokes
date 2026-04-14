@@ -30,6 +30,7 @@ export class JokeService {
       answer: row.answer,
       score: row.score,
       comments: row.comments.map((comment) => comment.body),
+      joke_creator: row.joke_creator,
     }));
   }
 
@@ -72,6 +73,7 @@ export class JokeService {
         question: jokesTable.question,
         answer: jokesTable.answer,
         score: jokesTable.score,
+        joke_creator: jokesTable.joke_creator,
       });
 
     if (!updatedJokeRow) {

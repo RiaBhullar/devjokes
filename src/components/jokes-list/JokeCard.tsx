@@ -1,5 +1,5 @@
 import { CommentsDrawer } from "#/components/CommentsDrawer";
-import { isLoggedIn } from "#/auth/fakeAuth";
+// import { isLoggedIn } from "#/auth/fakeAuth";
 import type { Joke } from "#/types";
 import { authClient } from "#/lib/auth-client";
 import {
@@ -31,7 +31,11 @@ export function JokeCard({
   onDelete,
   isDeleting,
 }: JokeCardProps) {
+  const { data: session } = authClient.useSession();
+  const isLoggedIn = !!session?.user;
   const isDeleteDisabled = isDeleting || !isLoggedIn;
+  const userId = session?.user.id;
+  const isOwner = userId === joke.joke_creator;
 
   return (
     <div
@@ -94,7 +98,8 @@ export function JokeCard({
                 <MessageCircle className="h-3.5 w-3.5" />
                 <span>{joke.comments.length}</span>
               </button>
-              <button
+              {isOwner ? (
+                <button
                 type="button"
                 className="inline-flex cursor-pointer items-center gap-[0.28rem] rounded-full border border-[#efc7c7] bg-[#fff7f7] px-[0.52rem] py-[0.2rem] text-[0.76rem] font-bold text-[#8c2f2f] hover:border-[#e7a8a8] hover:bg-[#ffeded] disabled:cursor-not-allowed disabled:opacity-65"
                 onClick={() => onDelete(joke.id)}
@@ -105,6 +110,7 @@ export function JokeCard({
                 <Trash2 className="h-3.5 w-3.5" />
                 <span>{isDeleting ? "Deleting..." : "Delete"}</span>
               </button>
+              ) : null}
             </div>
           </div>
 
