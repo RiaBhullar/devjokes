@@ -98,7 +98,6 @@ export default function Header() {
           </Link> */}
           {isLoggedIn ? (
             <>
-              {/* Show username and sign out if logged in */}
               <span className="text-[var(--ink-strong)]">{fullName}</span>
               <button
                 onClick={handleSignOut}
@@ -109,7 +108,6 @@ export default function Header() {
             </>
           ) : (
             <>
-              {/* Show signin and signup links if logged out */}
               <Link
                 to="/signin"
                 className="rounded-full border border-[#d9cbb3] bg-[#fffdf8] px-3 py-1.5 font-semibold text-[#6e5c47] no-underline transition-colors duration-150 hover:border-[#c8b393] hover:text-[#4b3b28]"
