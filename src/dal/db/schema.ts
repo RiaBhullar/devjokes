@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema.ts";
 
 export const jokesTable = pgTable("jokes", {
@@ -20,12 +20,27 @@ export const commentsTable = pgTable("comments", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const jokesVotesTable = pgTable("joke_vote_table", {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    jokeId: integer("joke_id")
+      .notNull()
+      .references(() => jokesTable.id),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
+    voteScore: integer("vote").notNull(),
+  }, (table) => [
+    uniqueIndex("unique_vote_joke_user").on(table.jokeId, table.userId)
+  ]
+  );
+
 export const jokesRelations = relations(jokesTable, ({ many, one }) => ({
   comments: many(commentsTable),
   user: one(user, {
     fields: [jokesTable.joke_creator],
     references: [user.id],
   }),
+  votes: many(jokesVotesTable),
 }));
 
 export const commentsRelations = relations(commentsTable, ({ one }) => ({
@@ -34,6 +49,17 @@ export const commentsRelations = relations(commentsTable, ({ one }) => ({
     references: [jokesTable.id],
   }),
 }));
+
+export const votesRelations = relations(jokesVotesTable, ({ one }) => ({
+  joke: one(jokesTable, {
+    fields: [jokesVotesTable.jokeId],
+    references: [jokesTable.id]
+  }),
+  user: one(user, {
+    fields: [jokesVotesTable.userId],
+    references: [user.id]
+  })
+}))
 
 export type JokeRow = typeof jokesTable.$inferSelect;
 export type NewJokeRow = typeof jokesTable.$inferInsert;

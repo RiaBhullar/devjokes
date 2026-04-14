@@ -4,9 +4,9 @@ import type {
   Joke,
   VoteJokeInput,
 } from "#/types";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type { DbClient } from "./db/client";
-import { commentsTable, jokesTable } from "./db/schema";
+import { commentsTable, jokesTable, jokesVotesTable } from "./db/schema";
 
 export class JokeService {
   constructor(private readonly db: DbClient) {}
@@ -62,39 +62,99 @@ export class JokeService {
   }
 
   async voteJoke(input: VoteJokeInput): Promise<Joke> {
-    const [updatedJokeRow] = await this.db
-      .update(jokesTable)
-      .set({
-        score: sql<number>`${jokesTable.score} + ${input.delta}`,
-      })
-      .where(eq(jokesTable.id, input.id))
-      .returning({
-        id: jokesTable.id,
-        question: jokesTable.question,
-        answer: jokesTable.answer,
-        score: jokesTable.score,
-        joke_creator: jokesTable.joke_creator,
-      });
-
-    if (!updatedJokeRow) {
-      throw new Error("Joke not found.");
-    }
-
-    const comments = await this.db.query.commentsTable.findMany({
-      columns: {
-        body: true,
-      },
-      where: eq(commentsTable.jokeId, input.id),
-      orderBy: (comment, { asc }) => [asc(comment.createdAt)],
+    const existing = await this.db.query.jokesVotesTable.findFirst({
+      where: and(
+        eq(jokesVotesTable.jokeId, input.id),
+        eq(jokesVotesTable.userId, input.userId)
+      ),
     });
 
-    const updatedJoke = {
-      ...updatedJokeRow,
-      comments: comments.map((comment) => comment.body),
-    };
+    let scoreDelta = 0;
 
-    return updatedJoke;
+    if (!existing) {
+      await this.db.insert(jokesVotesTable).values({
+        jokeId: input.id,
+        userId: input.userId,
+        voteScore: input.delta,
+      });
+
+      scoreDelta = input.delta;
+    } else if (existing.voteScore === input.delta) {
+      await this.db
+        .delete(jokesVotesTable)
+        .where(eq(jokesVotesTable.id, existing.id));
+
+      scoreDelta = -existing.voteScore;
+    } else {
+      await this.db
+        .update(jokesVotesTable)
+        .set({ voteScore: input.delta })
+        .where(eq(jokesVotesTable.id, existing.id));
+
+      scoreDelta = input.delta - existing.voteScore;
+    }
+
+    if (scoreDelta !== 0) {
+      await this.db
+        .update(jokesTable)
+        .set({
+          score: sql<number>`${jokesTable.score} + ${scoreDelta}`,
+        })
+        .where(eq(jokesTable.id, input.id));
+    }
+
+    const updated = await this.db.query.jokesTable.findFirst({
+      where: eq(jokesTable.id, input.id),
+    });
+
+    if (!updated) throw new Error("Joke not found.");
+
+    const comments = await this.db.query.commentsTable.findMany({
+      columns: { body: true },
+      where: eq(commentsTable.jokeId, input.id),
+      orderBy: (c, { asc }) => [asc(c.createdAt)],
+    });
+
+    return {
+      ...updated,
+      comments: comments.map((c) => c.body),
+    };
   }
+
+  // async voteJoke(input: VoteJokeInput): Promise<Joke> {
+  //   const [updatedJokeRow] = await this.db
+  //     .update(jokesTable)
+  //     .set({
+  //       score: sql<number>`${jokesTable.score} + ${input.delta}`,
+  //     })
+  //     .where(eq(jokesTable.id, input.id))
+  //     .returning({
+  //       id: jokesTable.id,
+  //       question: jokesTable.question,
+  //       answer: jokesTable.answer,
+  //       score: jokesTable.score,
+  //       joke_creator: jokesTable.joke_creator,
+  //     });
+
+  //   if (!updatedJokeRow) {
+  //     throw new Error("Joke not found.");
+  //   }
+
+  //   const comments = await this.db.query.commentsTable.findMany({
+  //     columns: {
+  //       body: true,
+  //     },
+  //     where: eq(commentsTable.jokeId, input.id),
+  //     orderBy: (comment, { asc }) => [asc(comment.createdAt)],
+  //   });
+
+  //   const updatedJoke = {
+  //     ...updatedJokeRow,
+  //     comments: comments.map((comment) => comment.body),
+  //   };
+
+  //   return updatedJoke;
+  // }
 
   async deleteJoke(input: DeleteJokeInput): Promise<void> {
     const result = await this.db

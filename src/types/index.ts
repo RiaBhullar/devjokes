@@ -14,8 +14,10 @@ export interface CreateJokeInput {
 export interface VoteJokeInput {
   id: Joke["id"];
   delta: 1 | -1;
+  userId: string;
 }
 
 export interface DeleteJokeInput {
   id: Joke["id"];
+  userId: string;
 }

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import {
   createJokeMutation,
@@ -129,9 +129,21 @@ function NewJokePage() {
           <h1 className="m-0 font-(--font-display) text-[clamp(1.9rem,5vw,2.6rem)] leading-[1.1]">
             Sign in to add a joke
           </h1>
-          <p className="mt-[0.65rem] max-w-[54ch] text-(--ink-soft)">
-            You're not signed in right now. Sign in or create an account and come back to add a joke!
+          <p className="mt-[0.65rem] mb-[1.65rem] max-w-[54ch] text-(--ink-soft)">
+            Joke submission is available to signed-in users only.
           </p>
+          <Link
+            to="/signin"
+            className="rounded-[0.75rem] border border-[#d78a41] bg-[linear-gradient(180deg,#ee9a49_0%,#d77420_100%)] px-6 py-3 font-semibold text-[#fff9f2] no-underline shadow-[0_6px_12px_rgba(180,83,9,0.2)] transition-[transform,box-shadow] duration-150 ease-in-out hover:-translate-y-px hover:shadow-[0_8px_14px_rgba(180,83,9,0.28)]"
+          >
+            Sign in
+          </Link>
+          <Link
+            to="/signup"
+            className="rounded-[0.75rem] border border-[#d9cbb3] bg-[#fffdf8] ml-[1rem] px-6 py-3 font-semibold text-[#6e5c47] no-underline transition-colors duration-150 hover:border-[#c8b393] hover:text-[#4b3b28]"
+          >
+            Create account
+          </Link>
         </section>
         </>
       )}
